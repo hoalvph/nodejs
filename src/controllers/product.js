@@ -76,38 +76,46 @@ export const create = async (req, res) => {
     }
 }
 
-export const update = async (req, res) => {
+export const update = async function (req, res) {
     try {
-        const { data: product } = await axios.patch(
-            `${API_URI}/product/${req.params.id}`, req.body
-        )
-        if (!product) {
-            return res.json({
-                message: "Cap nhap khong  thanh cong"
+        const { error } = productSchema.validate(req.body)
+        if (error) {
+            return res.status(400).json({
+                message: error.details[0].message
             })
         }
-        return res.json({
-            message: "Cap nhap thanh cong",
-            data: product
-        })
-
+        const updateProduct = await Product.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
+        if (updateProduct) {
+            return res.json({
+                message: "Cập nhật thành công",
+                data: updateProduct
+            })
+        } else {
+            return res.json({
+                message: "Cập nhật không thành công"
+            })
+        }
     } catch (error) {
         return res.status(400).json({
             message: error
         })
-
     }
 }
-export const remove = async (req, res) => {
+export const remove = async function (req, res) {
     try {
-        await axios.delete(`${API_URI}/product/${req.params.id}`)
-        res.json({
-            message: "Xoa thanh cong"
-        })
+        const removeProduct = await Product.findByIdAndDelete(req.params.id, { $set: req.body }, { new: true })
+        if (removeProduct) {
+            return res.json({
+                message: "Xóa thành công"
+            })
+        } else {
+            return res.json({
+                message: "Xóa không thành công"
+            })
+        }
     } catch (error) {
-        res.status(400).json({
+        return res.status(400).json({
             message: error
         })
-
     }
 }
